@@ -1,0 +1,74 @@
+package components
+
+templ BaseLayout(component templ.Component) {
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link href="/static/styles/output.css" rel="stylesheet"/>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			<title>Mekanik</title>
+		</head>
+		<body>
+			<div id="main-content">
+				@component
+			</div>
+		</body>
+	</html>
+}
+
+templ Register() {
+	<form
+		class="w-64 flex flex-col gap-y-2 mx-auto border rounded-md border-gray-300 p-6 mt-10 shadow-lg"
+		hx-post="/register"
+		hx-target="#main-content"
+		hx-swap="innerHTML"
+	>
+		<label for="username">Username:</label>
+		<input class="border border-gray-500 rounded-md" type="text" name="username"/>
+		<label for="app-role">Application role:</label>
+		<select id="app-role" name="app-role" class="border border-gray-500 rounded-md">
+			<option value="1">Employee</option>
+			<option value="2">Client</option>
+		</select>
+		// <label for="password">Password</label>
+		// <input type="password" name="password"/>
+		<input class="border border-gray-500 rounded-md cursor-pointer bg-gray-100 hover:bg-gray-200 mt-4" type="submit" value="Register"/>
+	</form>
+}
+
+templ Dashboard(appRole, username string) {
+	if appRole == "1" {
+		@EmployeeDashboard()
+	} else if appRole == "2" {
+		@ClinetDashboard()
+	} else {
+		<h1>Incorrect user role :/</h1>
+	}
+}
+
+templ ClinetDashboard() {
+	<div>
+		<h1>Client Dashboard</h1>
+		<button type="button">Add repairment</button>
+		<ul>
+			<li>Repairment 1</li>
+			<li>Repairment 2</li>
+			<li>Repairment 3</li>
+		</ul>
+	</div>
+}
+
+templ EmployeeDashboard() {
+	<div>
+		<h1>Employee Dashboard</h1>
+		<button type="button">Add repairment</button>
+		<button type="button">Update repairment</button>
+		<button type="button">Finish repairment</button>
+		<ul>
+			<li>Repairment 1</li>
+			<li>Repairment 2</li>
+			<li>Repairment 3</li>
+		</ul>
+	</div>
+}
