@@ -4,6 +4,7 @@ go 1.21.5
 
 require (
 	github.com/a-h/templ v0.2.513 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/labstack/echo/v4 v4.11.4 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect

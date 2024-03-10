@@ -1,54 +1,160 @@
 package components
 
+import (
+	"fmt"
+	"templ_test/internal/persistance"
+)
+
+var buttonClasses = "border border-gray-500 rounded-md cursor-pointer bg-slate-800 hover:bg-slate-700 px-4 py-2"
+
+templ Modal(modalContent templ.Component) {
+	<div id="modal-wrapper" class="fixed inset-0 bg-slate-500 bg-opacity-50 overflow-y-auto h-screen w-screen backdrop-blur-sm bg-slate-900 text-gray-200">
+		<div id="modal" class="relative top-20 mx-auto p-5 border border-gray-600 w-96 shadow-lg rounded-lg bg-slate-900 animate-pop-in">
+			<div class="modal-underlay"></div>
+			<div class="modal-content">
+				<h1 class="text-4xl font-semibold">Modal name !</h1>
+				@modalContent
+				<div class="flex justify-end w-full">
+					<button hx-post="/close-modal" hx-target="#modal-wrapper" hx-swap="outerHTML" class={ buttonClasses }>Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
 templ BaseLayout(component templ.Component) {
+	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link href="/static/styles/output.css" rel="stylesheet"/>
 			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			<link rel="icon" type="image/png" href="/static/mechanic_icon.png"/>
 			<title>Mekanik</title>
 		</head>
 		<body>
-			<div id="main-content">
+			<div id="main-content" class="w-screen h-screen bg-slate-900 text-gray-200">
 				@component
 			</div>
 		</body>
 	</html>
 }
 
-templ Register() {
+templ LoginForm() {
+	<div class="flex justify-center items-center content-center w-full h-full">
+		<form
+			class="w-1/2 min-w-64 max-w-96 flex flex-col gap-y-2 mx-auto border rounded-md border-gray-600 p-6 shadow-lg"
+			action="/login"
+			method="POST"
+		>
+			<label for="username">Username:</label>
+			<input class="border border-gray-600 rounded-md p-2 bg-slate-700" type="text" name="username" id="username" required/>
+			<label for="password">Password:</label>
+			<input class="border border-gray-600 rounded-md p-2 bg-slate-700" type="password" name="password" id="password"/>
+			<input class={ buttonClasses + " mt-7 p-2" } type="submit" value="Login"/>
+			<div>
+				Don't have account ? <a class="text-sky-400 cursor-pointer" hx-get="/register" hx-swap="innerHTML" hx-target="#main-content">Register</a>
+			</div>
+		</form>
+	</div>
+}
+
+templ RegisterForm() {
+	<div class="flex justify-center items-center content-center w-full h-full">
+		<form
+			class="w-1/2 min-w-64 max-w-96 flex flex-col gap-y-2 mx-auto border rounded-md border-gray-600 p-6 mt-10 shadow-lg"
+			hx-post="/register"
+			hx-target="#main-content"
+			hx-swap="innerHTML"
+		>
+			<label for="username">Username:</label>
+			<input class="border border-gray-600 rounded-md p-2 bg-slate-700" type="text" name="username" id="username" required/>
+			<label for="password">Password</label>
+			<input class="border border-gray-600 rounded-md p-2 bg-slate-700" type="password" name="password" id="password"/>
+			<label for="app-role">Application role:</label>
+			<select id="app-role" name="app-role" class="border border-gray-500 rounded-md p-2 bg-slate-700">
+				<option value="1">Employee</option>
+				<option value="2">Client</option>
+			</select>
+			<input class={ buttonClasses + " mt-4 p-2 bg-slate-700" } type="submit" value="Register"/>
+			<div>
+				Already have account ? <a class="text-sky-400 cursor-pointer" href="/">Login</a>
+			</div>
+		</form>
+	</div>
+}
+
+templ AddRepairmentForm(users []*persistance.User, errors map[string]string) {
 	<form
-		class="w-64 flex flex-col gap-y-2 mx-auto border rounded-md border-gray-300 p-6 mt-10 shadow-lg"
-		hx-post="/register"
-		hx-target="#main-content"
-		hx-swap="innerHTML"
+		id="add-assignment-form"
+		class="w-full flex flex-col gap-y-2 mx-auto p-6"
+		hx-post="/assignment"
+		hx-target="#modal-wrapper"
+		hx-swap="outerHTML"
 	>
-		<label for="username">Username:</label>
-		<input class="border border-gray-500 rounded-md" type="text" name="username"/>
-		<label for="app-role">Application role:</label>
-		<select id="app-role" name="app-role" class="border border-gray-500 rounded-md">
-			<option value="1">Employee</option>
-			<option value="2">Client</option>
+		<label for="name">Name:</label>
+		<input class="border border-gray-600 rounded-md bg-slate-700 p-2" type="text" name="name" id="name"/>
+		if errors["name"] != "" {
+			<p class="text-red-500">{ errors["name"] }</p>
+		}
+		<label for="type">Type:</label>
+		<select id="type" name="type" class="border border-gray-600 rounded-md bg-slate-700 p-2">
+			<option value="1">Vehicle repairment</option>
+			<option value="2">Vehicle overview</option>
+			<option value="3">Vehicle wash</option>
+			<option value="4">Other shit</option>
 		</select>
-		// <label for="password">Password</label>
-		// <input type="password" name="password"/>
-		<input class="border border-gray-500 rounded-md cursor-pointer bg-gray-100 hover:bg-gray-200 mt-4" type="submit" value="Register"/>
+		if errors["type"] != "" {
+			<p class="text-red-500">{ errors["name"] }</p>
+		}
+		<label for="status">Status:</label>
+		<select id="status" name="status" class="border border-gray-600 rounded-md bg-slate-700 p-2">
+			<option value="1">Requested</option>
+			<option value="2">Rejected</option>
+			<option value="3">Started</option>
+			<option value="4">Finished</option>
+			<option value="5">Some shit</option>
+		</select>
+		if errors["status"] != "" {
+			<p class="text-red-500">{ errors["name"] }</p>
+		}
+		<label for="assigned_to">Assigned to:</label>
+		<select id="assigned_to" name="assigned_to" class="border border-gray-600 rounded-md bg-slate-700 p-2">
+			<option value="0">Not assigned</option>
+			for _, user := range users {
+				<option value={ fmt.Sprint(user.ID) }>{ user.Username }</option>
+			}
+		</select>
+		if errors["assigned_to"] != "" {
+			<p class="text-red-500">{ errors["name"] }</p>
+		}
+		<input class={ buttonClasses + " mt-4 bg-slate-700 p-2" } type="submit" value="Add assignment"/>
 	</form>
 }
 
-templ Dashboard(appRole, username string) {
-	if appRole == "1" {
-		@EmployeeDashboard()
-	} else if appRole == "2" {
-		@ClinetDashboard()
-	} else {
-		<h1>Incorrect user role :/</h1>
-	}
+templ Dashboard(appRole string, component templ.Component) {
+	<nav class="flex flex-row flex-gap-2 p-2 w-full border border-gray-600 rounded-md items-center">
+		<div class="h-full">
+			if appRole == "1" {
+				<h1 class="text-xl">Employee Dashboard</h1>
+			} else if appRole == "2" {
+				<h1 class="text-xl">Client Dashboard</h1>
+			} else {
+				<h1>Incorrect user role :/</h1>
+			}
+		</div>
+		<ul class="flex flex-row flex-gap-2 justify-end grow">
+			<li><button class={ buttonClasses } hx-post="/logout" hx-swap="innerHTML" hx-target="#main-content">Logout</button></li>
+		</ul>
+	</nav>
+	<div id="dashboard-contents" class="flex mx-auto w-1/2">
+		@component
+	</div>
 }
 
-templ ClinetDashboard() {
-	<div>
+templ ClinetDashboard(users []*persistance.User, assignments []*persistance.Assignment) {
+	<div class="w-full">
 		<h1>Client Dashboard</h1>
 		<button type="button">Add repairment</button>
 		<ul>
@@ -59,16 +165,75 @@ templ ClinetDashboard() {
 	</div>
 }
 
-templ EmployeeDashboard() {
-	<div>
-		<h1>Employee Dashboard</h1>
-		<button type="button">Add repairment</button>
-		<button type="button">Update repairment</button>
-		<button type="button">Finish repairment</button>
-		<ul>
-			<li>Repairment 1</li>
-			<li>Repairment 2</li>
-			<li>Repairment 3</li>
-		</ul>
+templ EmployeeDashboard(users []*persistance.User, assignments []*persistance.Assignment) {
+	<div class="w-full">
+		<div id="actions" class="mt-4 flex flex-row flex-gap-2 justify-between">
+			<button
+				hx-get="/assignment-modal"
+				hx-target="body"
+				hx-swap="beforeend"
+				hx-trigger="click"
+				class={ buttonClasses }
+			>Add repairment</button>
+			<button type="button" class={ buttonClasses }>Update repairment</button>
+			<button type="button" class={ buttonClasses }>Finish repairment</button>
+		</div>
+		<hr class="h-px my-8 bg-slate-800 border-0"/>
+		<h1 class="text-xl mb-5">Repairments table</h1>
+		<div class="p-2 border border-gray-600 rounded-md">
+			<table class="w-full text-sm text-left rtl:text-right">
+				<thead class="text-xs uppercase bg-slate-700 ">
+					<tr>
+						<th scope="col" class="px-6 py-3">Id</th>
+						<th scope="col" class="px-6 py-3">Name</th>
+						<th scope="col" class="px-6 py-3">Type</th>
+						<th scope="col" class="px-6 py-3">Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, assignment := range assignments {
+						@Repairment(assignment)
+					}
+				</tbody>
+			</table>
+		</div>
 	</div>
+}
+
+func GetRepairmentStatus(status int) string {
+	switch status {
+	case 1:
+		return "Requested"
+	case 2:
+		return "Rejected"
+	case 3:
+		return "Started"
+	case 4:
+		return "Finished"
+	default:
+		return "Unknown"
+	}
+}
+
+func GetRepairmentType(status int) string {
+	switch status {
+	case 1:
+		return "Vehicle repairment"
+	case 2:
+		return "Vehicle overview"
+	case 3:
+		return "Vehicle wash"
+	default:
+		return "Unknown"
+	}
+}
+
+templ Repairment(asignment *persistance.Assignment) {
+	// class="border border-gray-500 rounded-md flex flex-row justify-around p-2"
+	<tr class="bg-slate-900 border-b border-gray-600 odd:bg-slate-900 even:bg-slate-600">
+		<td class="px-6 py-4">{ fmt.Sprint(asignment.ID) }</td>
+		<td class="px-6 py-4">{ asignment.Name }</td>
+		<td class="px-6 py-4">{ GetRepairmentType(asignment.Type) }</td>
+		<td class="px-6 py-4">{ GetRepairmentStatus(asignment.Status) }</td>
+	</tr>
 }

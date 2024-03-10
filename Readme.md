@@ -21,3 +21,10 @@ And after every change in go templates run:
 ```bash
 make templ
 ```
+
+---
+
+### Project TODO's:
+
+- [ ] Make every form a modal
+- [ ] Strictest validation possible!
